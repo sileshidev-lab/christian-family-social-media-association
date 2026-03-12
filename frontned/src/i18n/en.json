@@ -1,0 +1,147 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "news": "News",
+    "gallery": "Gallery",
+    "register": "Register",
+    "contact": "Contact",
+    "login": "Admin"
+  },
+  "hero": {
+    "title": "Christian Family Social Media Association",
+    "titleAm": "የክርስቲያን ቤተሰብ ማህበራዊ ሚዲያ ማህበር",
+    "subtitle": "",
+    "cta": "Join the Association",
+    "learnMore": "Learn More"
+  },
+  "intro": {
+    "title": "Introduction",
+    "subtitle": "Why this association exists",
+    "body": "\"Bearing fruit that brings glory to God and building a generation shaped by Christ's love, modern technology plays a major role.\" In the 21st century, the church cannot fulfill the gospel mission without using the technology of our time. As founding members, we rise to obey the Great Commission our Lord and Savior Jesus Christ gave in Mark 16:15: \"Go into all the world and preach the gospel to all creation.\" We recognize that social media has become the largest public square of our age. TikTok, in particular, is now the most widely used platform among millions of Ethiopian youth and families every day. Social media holds tremendous influence in Ethiopian society, and Christian family values, moral standards, and gospel truths are often pressured in the digital world. As Christian content creators, we believe we carry a heavenly stewardship to bring the light of the Word into this network. Although millions gather here, much of the content undermines Christian values, weakens families, and drives the generation toward moral decline. Therefore, it has become a responsibility of our time to gather believing families active on TikTok under one spiritual covering and guide them in an orderly way under the council's recognition and leadership. This association was founded on Hamle 1, 2017 E.C. to empower content creators, build families, and deliver the gospel through technology."
+  },
+  "about": {
+    "title": "Our Mission and Vision",
+    "subtitle": "Rooted in the gospel, reaching a digital generation",
+    "mission": "Mission",
+    "missionText": "Equip and unite Christian families and content creators to share the gospel through modern media while upholding biblical values.",
+    "vision": "Vision",
+    "visionText": "A generation shaped by Christ's love, bearing fruit that honors God in every digital space.",
+    "founded": "Founded",
+    "foundedText": "July 1, 2017 E.C."
+  },
+  "team": {
+    "title": "Leadership",
+    "subtitle": "Servant leaders guiding the association"
+  },
+  "news": {
+    "title": "News & Updates",
+    "subtitle": "Stories of impact across Ethiopia",
+    "readMore": "Read more",
+    "viewAll": "View all",
+    "emptyTitle": "No updates yet",
+    "emptyText": "News from the association will appear here soon.",
+    "emptyCta": "Contact us"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "Photos and videos from our ministry",
+    "viewAll": "View all",
+    "photos": "Photos",
+    "videos": "Videos",
+    "emptyTitle": "No media yet",
+    "emptyText": "Check back soon for photos and videos from the association.",
+    "emptyCta": "Contact us"
+  },
+  "cta": {
+    "title": "Answer the call to serve",
+    "subtitle": "Bring light to the digital public square",
+    "button": "Start Registration"
+  },
+  "register": {
+    "title": "Join the Association",
+    "subtitle": "Five-step registration",
+    "personalInfo": "Personal Information",
+    "socialMedia": "Social Media",
+    "responsibility": "Responsibility",
+    "ethics": "Ethics & Conduct",
+    "covenant": "Association Covenant",
+    "submit": "Submit Registration",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "church": "Church",
+    "country": "Country",
+    "tiktokUsername": "TikTok Username",
+    "contentType": "Content Type",
+    "familyGames": "Family Games",
+    "dailyVlogs": "Daily Vlogs",
+    "bibleTeaching": "Bible Teaching",
+    "parentingAdvice": "Parenting Advice",
+    "worship": "Worship",
+    "other": "Other",
+    "otherPlatforms": "Other Platforms",
+    "contribution": "How will you contribute?",
+    "availability": "Availability",
+    "agreeToCovenant": "I agree to the covenant",
+    "success": "Registration submitted successfully!",
+    "error": "Please complete all required fields."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We would love to hear from you",
+    "name": "Your Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "address": "Address",
+    "phone": "Phone",
+    "emailLabel": "Email",
+    "followUs": "Follow Us"
+  },
+  "footer": {
+    "description": "A movement uniting Christian content creators to evangelize through modern technology while strengthening biblical family values.",
+    "quickLinks": "Quick Links",
+    "contactInfo": "Contact Information",
+    "followUs": "Follow Us",
+    "newsletterTitle": "Subscribe to our newsletter",
+    "newsletterSubtitle": "Get updates and announcements from the association.",
+    "newsletterPlaceholder": "Your email address",
+    "newsletterButton": "Subscribe",
+    "newsletterSuccess": "Thank you for subscribing!",
+    "rights": "All rights reserved."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "more": "More"
+  },
+  "covenant": {
+    "title": "Association Covenant",
+    "rules": [
+      "I will honor Christ in every piece of content I publish.",
+      "I will avoid content that promotes immorality or division.",
+      "I will seek counsel from the association leadership when needed.",
+      "I will respect fellow members and promote unity.",
+      "I will protect the reputation of the gospel and the church.",
+      "I will use my platforms to strengthen families.",
+      "I will be accountable for the content I share.",
+      "I will serve with humility and excellence.",
+      "I will uphold the association's decisions and guidance.",
+      "I will pray for the association and its mission."
+    ]
+  }
+}

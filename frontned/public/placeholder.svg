@@ -1,0 +1,7 @@
+<svg width="800" height="450" viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="450" rx="32" fill="#F3E9DD"/>
+  <path d="M120 330L260 200L360 280L520 120L680 260" stroke="#1F4E79" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="260" cy="200" r="16" fill="#D99A00"/>
+  <circle cx="520" cy="120" r="16" fill="#1F7A8C"/>
+  <text x="400" y="230" text-anchor="middle" font-family="Inter, Arial" font-size="22" fill="#6B4E3D">Media Placeholder</text>
+</svg>

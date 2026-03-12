@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Ethiopic:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7%;
+  --card: 33 41% 95%;
+  --card-foreground: 0 0% 7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7%;
+  --primary: 209 59% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 43 100% 43%;
+  --secondary-foreground: 0 0% 7%;
+  --muted: 37 39% 94%;
+  --muted-foreground: 22 27% 33%;
+  --accent: 190 64% 34%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 22 92% 37%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 33 40% 84%;
+  --input: 33 40% 84%;
+  --ring: 209 59% 30%;
+  --radius: 0.625rem;
+  --gradient-hero: linear-gradient(135deg, hsl(209 59% 30% / 0.95), hsl(43 100% 43% / 0.9));
+  --gradient-warm: linear-gradient(180deg, hsl(0 0% 100%), hsl(33 48% 91%));
+  --gradient-accent: linear-gradient(135deg, hsl(190 64% 34%), hsl(123 46% 34%));
+  --gradient-gold: linear-gradient(135deg, hsl(43 100% 43%), hsl(22 92% 37%));
+  --shadow-soft: 0 4px 20px -4px hsl(25 25% 15% / 0.1);
+  --shadow-medium: 0 8px 30px -8px hsl(25 25% 15% / 0.15);
+  --shadow-elevated: 0 20px 50px -15px hsl(25 25% 15% / 0.2);
+  --pattern-cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23D99A00' stroke-width='1'%3E%3Cpath d='M40 10v60M10 40h60'/%3E%3Cpath d='M20 20l40 40M60 20L20 60'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.dark {
+  --background: 0 0% 7%;
+  --foreground: 0 0% 100%;
+  --primary: 209 59% 40%;
+  --secondary: 43 100% 45%;
+  --accent: 190 64% 40%;
+  --muted: 22 27% 20%;
+  --destructive: 22 92% 45%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  font-family: "Inter", "Noto Sans Ethiopic", system-ui, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+[lang="am"],
+.amharic {
+  font-family: "Noto Sans Ethiopic", "Inter", system-ui, sans-serif;
+  line-height: 1.8;
+}
+
+.ethiopian-border {
+  position: relative;
+}
+
+.ethiopian-border::after {
+  content: "";
+  display: block;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #1f4e79 0,
+    #1f4e79 18px,
+    #d99a00 18px,
+    #d99a00 36px,
+    #1f7a8c 36px,
+    #1f7a8c 54px
+  );
+}
+
+.pattern-cross {
+  background-image: var(--pattern-cross);
+  background-size: 120px 120px;
+}
+
+.glass {
+  backdrop-filter: blur(12px);
+  background: hsl(var(--background) / 0.85);
+}
+
+.btn-primary-warm {
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-secondary-warm {
+  box-shadow: var(--shadow-soft);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-medium);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.section-padding {
+  padding: 3.5rem 1.5rem;
+}
+
+.section-compact {
+  padding: 2rem 1.5rem;
+}
+
+.footer-compact {
+  padding: 1.75rem 1.5rem;
+}
+
+.text-gradient-primary {
+  background-image: var(--gradient-hero);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logo-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid hsl(var(--border));
+}
+
+.animated-underline {
+  position: relative;
+}
+
+.animated-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  height: 2px;
+  width: 0;
+  background: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.animated-underline:hover::after,
+.animated-underline:focus-visible::after {
+  width: 100%;
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+
+.hero-video-container {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-elevated);
+}
+
+.hero-video-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, hsl(var(--background) / 0.35));
+  pointer-events: none;
+}
+
+.section-title {
+  font-family: "Playfair Display", "Noto Sans Ethiopic", serif;
+}
+
+.hero-grid {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 0.5rem 0;
+}
+
+.marquee-full {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.marquee::before,
+.marquee::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee::before {
+  left: 0;
+  background: linear-gradient(90deg, hsl(var(--background)) 0%, transparent 100%);
+}
+
+.marquee::after {
+  right: 0;
+  background: linear-gradient(270deg, hsl(var(--background)) 0%, transparent 100%);
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  width: max-content;
+  animation: marquee-scroll 24s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-item {
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.marquee-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid hsl(var(--background));
+  box-shadow: var(--shadow-soft);
+  background: hsl(var(--muted));
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: start;
+  }
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding: 4.5rem 2rem;
+  }
+
+  .section-compact {
+    padding: 2.5rem 2rem;
+  }
+
+  .footer-compact {
+    padding: 2rem 2rem;
+  }
+}
