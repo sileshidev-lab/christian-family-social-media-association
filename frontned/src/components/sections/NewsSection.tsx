@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { newsService } from "@/services/dataService";
+import { useQuery } from "@tanstack/react-query";
+import { newsApi } from "@/services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,11 @@ import { format } from "date-fns";
 const NewsSection = () => {
   const { t, i18n } = useTranslation();
   const isAm = i18n.language === "am";
-  const items = newsService.getPublished().slice(0, 3);
+  const { data: items = [], isLoading, isError } = useQuery({
+    queryKey: ["news", "published"],
+    queryFn: newsApi.getPublished
+  });
+  const visibleItems = items.slice(0, 3);
 
   return (
     <section className="container section-padding">
@@ -22,7 +27,15 @@ const NewsSection = () => {
           <Link to="/news">{t("news.viewAll")}</Link>
         </Button>
       </div>
-      {items.length === 0 ? (
+      {isError ? (
+        <div className="mt-8 rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
+          <p className="text-base font-semibold">{t("common.error")}</p>
+        </div>
+      ) : isLoading ? (
+        <div className="mt-8 rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
+          <p className="text-base font-semibold">{t("common.loading")}</p>
+        </div>
+      ) : visibleItems.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
           <p className="text-base font-semibold">{t("news.emptyTitle")}</p>
           <p className="mt-2 text-sm text-muted-foreground">{t("news.emptyText")}</p>
@@ -33,7 +46,7 @@ const NewsSection = () => {
       ) : (
         <>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {items.map((item) => (
+            {visibleItems.map((item) => (
               <Card key={item.id} className="card-elevated overflow-hidden">
                 <div className="h-44 w-full bg-muted">
                   <img

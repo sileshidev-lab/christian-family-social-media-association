@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { newsService } from "@/services/dataService";
+import { useQuery } from "@tanstack/react-query";
+import { newsApi } from "@/services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -8,7 +9,10 @@ import { format } from "date-fns";
 const NewsPage = () => {
   const { t, i18n } = useTranslation();
   const isAm = i18n.language === "am";
-  const items = newsService.getPublished();
+  const { data: items = [], isLoading, isError } = useQuery({
+    queryKey: ["news", "published"],
+    queryFn: newsApi.getPublished
+  });
 
   return (
     <section className="container section-compact">
@@ -17,7 +21,15 @@ const NewsPage = () => {
           <h1 className="section-title text-2xl md:text-3xl">{t("news.title")}</h1>
           <p className="text-muted-foreground">{t("news.subtitle")}</p>
         </div>
-        {items.length === 0 ? (
+        {isError ? (
+          <div className="rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
+            <p className="text-base font-semibold">{t("common.error")}</p>
+          </div>
+        ) : isLoading ? (
+          <div className="rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
+            <p className="text-base font-semibold">{t("common.loading")}</p>
+          </div>
+        ) : items.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
             <p className="text-base font-semibold">{t("news.emptyTitle")}</p>
             <p className="mt-2 text-sm text-muted-foreground">{t("news.emptyText")}</p>

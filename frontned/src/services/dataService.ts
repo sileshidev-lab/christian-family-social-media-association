@@ -100,7 +100,7 @@ const setStored = <T>(key: string, value: T) => {
 
 const imagePath = (filename: string) => encodeURI(`/photos/${filename}`);
 
-const defaultTeam: TeamMember[] = [
+export const fallbackTeam: TeamMember[] = [
   {
     id: "team-ruhama-beruk",
     name: "Ruhama Beruk",
@@ -236,12 +236,12 @@ export const newsService = {
 export const teamService = {
   getAll: () => {
     const stored = getStored<TeamMember[]>(STORAGE_KEYS.team, []);
-    const source = stored.length ? stored : defaultTeam;
+    const source = stored.length ? stored : fallbackTeam;
     return [...source].sort((a, b) => a.order - b.order);
   },
   getById: (id: string) => {
     const stored = getStored<TeamMember[]>(STORAGE_KEYS.team, []);
-    const source = stored.length ? stored : defaultTeam;
+    const source = stored.length ? stored : fallbackTeam;
     return source.find((item) => item.id === id);
   },
   create: (member: TeamMember) => {

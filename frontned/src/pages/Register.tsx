@@ -3,8 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { formatISO } from "date-fns";
-import { registrationService } from "@/services/dataService";
+import { registrationApi } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +34,8 @@ const RegisterPage = () => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -91,27 +92,32 @@ const RegisterPage = () => {
 
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 0));
 
-  const onSubmit = (values: FormValues) => {
-    registrationService.create({
-      id: Math.random().toString(36).slice(2, 10),
-      fullName: values.fullName,
-      email: values.email,
-      phone: values.phone,
-      church: values.church,
-      country: values.country,
-      tiktokUsername: values.tiktokUsername,
-      contentType: values.contentType,
-      otherPlatforms: values.otherPlatforms
-        ? values.otherPlatforms.split(",").map((item) => item.trim())
-        : [],
-      contribution: values.contribution,
-      availability: values.availability,
-      agreeToCovenant: values.agreeToCovenant,
-      ethicsStatement: values.ethicsStatement,
-      status: "pending",
-      submittedAt: formatISO(new Date())
-    });
-    setSubmitted(true);
+  const onSubmit = async (values: FormValues) => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await registrationApi.create({
+        fullName: values.fullName,
+        email: values.email,
+        phone: values.phone,
+        church: values.church,
+        country: values.country,
+        tiktokUsername: values.tiktokUsername,
+        contentType: values.contentType,
+        otherPlatforms: values.otherPlatforms
+          ? values.otherPlatforms.split(",").map((item) => item.trim())
+          : [],
+        contribution: values.contribution,
+        availability: values.availability,
+        agreeToCovenant: values.agreeToCovenant,
+        ethicsStatement: values.ethicsStatement
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Submission failed.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -142,6 +148,11 @@ const RegisterPage = () => {
           </div>
         ) : (
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                {submitError && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {submitError}
+                  </p>
+                )}
                 {step === 0 && (
                   <div className="grid gap-3 md:grid-cols-2">
                     <div className="space-y-2">
@@ -315,7 +326,9 @@ const RegisterPage = () => {
                   {t("common.next")}
                 </Button>
               ) : (
-                <Button type="submit">{t("register.submit")}</Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : t("register.submit")}
+                </Button>
               )}
             </div>
           </form>

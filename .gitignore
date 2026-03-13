@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+frontned/.env
+
+# Large media
+frontned/public/videos/*
+backend/uploads/*
+backend/.env

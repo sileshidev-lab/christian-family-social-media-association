@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { registrationService, type Registration } from "@/services/dataService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { registrationApi } from "@/services/api";
+import type { Registration } from "@/services/dataService";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,14 +16,17 @@ import {
 } from "@/components/ui/dialog";
 
 const AdminRegistrationsPage = () => {
-  const [refresh, setRefresh] = useState(0);
   const [registrationFilter, setRegistrationFilter] = useState<
     "all" | Registration["status"]
   >("all");
   const [registrationQuery, setRegistrationQuery] = useState("");
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
 
-  const registrations = useMemo(() => registrationService.getAll(), [refresh]);
+  const queryClient = useQueryClient();
+  const { data: registrations = [], isLoading, isError } = useQuery({
+    queryKey: ["admin", "registrations"],
+    queryFn: registrationApi.getAdminAll
+  });
 
   const filteredRegistrations = useMemo(() => {
     const query = registrationQuery.trim().toLowerCase();
@@ -65,18 +70,16 @@ const AdminRegistrationsPage = () => {
   };
 
   const handleRegistrationStatus = (id: string, status: Registration["status"]) => {
-    registrationService.updateStatus(id, status, "admin");
-    setRefresh((prev) => prev + 1);
+    statusMutation.mutate({ id, status });
   };
 
   const handleDeleteRegistration = (id: string) => {
     if (!window.confirm("Delete this registration?")) return;
-    registrationService.delete(id);
-    setRefresh((prev) => prev + 1);
+    deleteMutation.mutate(id);
   };
 
   const exportApprovedCsv = () => {
-    const approved = registrationService.getByStatus("approved");
+    const approved = registrations.filter((reg) => reg.status === "approved");
     if (!approved.length) {
       window.alert("No approved members to export yet.");
       return;
@@ -124,6 +127,17 @@ const AdminRegistrationsPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: Registration["status"] }) =>
+      registrationApi.updateStatus(id, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "registrations"] })
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => registrationApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "registrations"] })
+  });
+
   return (
     <div className="space-y-6" id="registrations">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -169,7 +183,15 @@ const AdminRegistrationsPage = () => {
         </div>
       </div>
 
-      {filteredRegistrations.length === 0 ? (
+      {isError ? (
+        <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+          Failed to load registrations.
+        </div>
+      ) : isLoading ? (
+        <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+          Loading registrations...
+        </div>
+      ) : filteredRegistrations.length === 0 ? (
         <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
           No registrations found yet.{" "}
           <Link to="/register" className="text-primary underline-offset-2 hover:underline">

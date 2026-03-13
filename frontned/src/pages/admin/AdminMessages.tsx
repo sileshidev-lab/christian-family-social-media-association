@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { contactService, type ContactMessage } from "@/services/dataService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { messageApi } from "@/services/api";
+import type { ContactMessage } from "@/services/dataService";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,12 +16,15 @@ import {
 } from "@/components/ui/dialog";
 
 const AdminMessagesPage = () => {
-  const [refresh, setRefresh] = useState(0);
   const [messageQuery, setMessageQuery] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
 
-  const messages = useMemo(() => contactService.getAll(), [refresh]);
+  const queryClient = useQueryClient();
+  const { data: messages = [], isLoading, isError } = useQuery({
+    queryKey: ["admin", "messages"],
+    queryFn: messageApi.getAdminAll
+  });
 
   const filteredMessages = useMemo(() => {
     const query = messageQuery.trim().toLowerCase();
@@ -43,10 +48,20 @@ const AdminMessagesPage = () => {
     return date.toLocaleDateString();
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => messageApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "messages"] })
+  });
+
+  const readMutation = useMutation({
+    mutationFn: ({ id, isRead }: { id: string; isRead: boolean }) =>
+      messageApi.updateRead(id, isRead),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "messages"] })
+  });
+
   const handleDelete = (id: string) => {
     if (!window.confirm("Delete this message?")) return;
-    contactService.delete(id);
-    setRefresh((prev) => prev + 1);
+    deleteMutation.mutate(id);
   };
 
   return (
@@ -77,7 +92,15 @@ const AdminMessagesPage = () => {
         </p>
       </div>
 
-      {filteredMessages.length === 0 ? (
+      {isError ? (
+        <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+          Failed to load messages.
+        </div>
+      ) : isLoading ? (
+        <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+          Loading messages...
+        </div>
+      ) : filteredMessages.length === 0 ? (
         <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
           No messages yet.{" "}
           <Link to="/contact" className="text-primary underline-offset-2 hover:underline">
@@ -120,12 +143,7 @@ const AdminMessagesPage = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          if (msg.isRead) {
-                            contactService.markAsUnread(msg.id);
-                          } else {
-                            contactService.markAsRead(msg.id);
-                          }
-                          setRefresh((prev) => prev + 1);
+                          readMutation.mutate({ id: msg.id, isRead: !msg.isRead });
                         }}
                       >
                         {msg.isRead ? "Mark Unread" : "Mark Read"}

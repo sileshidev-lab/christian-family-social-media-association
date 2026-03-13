@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, Navigate } from "react-router-dom";
 import {
   Mail,
   Menu,
@@ -10,10 +10,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 
 const AdminLayout = () => {
   const location = useLocation();
   const isLogin = location.pathname.endsWith("/login");
+  const { loading, token, logout } = useAdminAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -41,6 +43,24 @@ const AdminLayout = () => {
     ],
     []
   );
+
+  if (!isLogin && loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="container section-compact">
+          <p className="text-sm text-muted-foreground">Loading admin session...</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!isLogin && !token) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  if (isLogin && token) {
+    return <Navigate to="/admin/messages" replace />;
+  }
 
   if (isLogin) {
     return (
@@ -119,12 +139,28 @@ const AdminLayout = () => {
           })}
         </nav>
         <div className="mt-auto border-t border-border px-4 py-4">
-          <Button asChild size="sm" variant="outline" className={cn(collapsed && "md:w-10 md:px-0")}>
-            <Link to="/">
-              <span className={cn(collapsed && "md:hidden")}>Back to site</span>
-              <span className={cn("hidden", collapsed && "md:inline")}>←</span>
-            </Link>
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className={cn(collapsed && "md:w-10 md:px-0")}
+              onClick={logout}
+            >
+              <span className={cn(collapsed && "md:hidden")}>Logout</span>
+              <span className={cn("hidden", collapsed && "md:inline")}>↩</span>
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className={cn(collapsed && "md:w-10 md:px-0")}
+            >
+              <Link to="/">
+                <span className={cn(collapsed && "md:hidden")}>Back to site</span>
+                <span className={cn("hidden", collapsed && "md:inline")}>←</span>
+              </Link>
+            </Button>
+          </div>
         </div>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col md:ml-0">

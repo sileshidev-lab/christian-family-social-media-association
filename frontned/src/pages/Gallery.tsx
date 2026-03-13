@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { mediaService } from "@/services/dataService";
+import { useQuery } from "@tanstack/react-query";
+import { mediaApi } from "@/services/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,26 @@ import { Button } from "@/components/ui/button";
 const GalleryGrid = ({ type }: { type: "all" | "photo" | "video" }) => {
   const { t, i18n } = useTranslation();
   const isAm = i18n.language === "am";
-  const items =
-    type === "all" ? mediaService.getAll() : mediaService.getByType(type);
+  const { data: items = [], isLoading, isError } = useQuery({
+    queryKey: ["media", type],
+    queryFn: () => (type === "all" ? mediaApi.getAll() : mediaApi.getByType(type))
+  });
+
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
+        <p className="text-base font-semibold">{t("common.error")}</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-border bg-card/60 p-10 text-center shadow-soft">
+        <p className="text-base font-semibold">{t("common.loading")}</p>
+      </div>
+    );
+  }
 
   if (!items.length) {
     return (
@@ -28,17 +47,28 @@ const GalleryGrid = ({ type }: { type: "all" | "photo" | "video" }) => {
       {items.map((item) => (
         <Card key={item.id} className="overflow-hidden card-elevated">
           <div className="h-48 w-full bg-muted">
-            <img
-              src={item.url}
-              alt={item.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-              decoding="async"
-              onError={(event) => {
-                event.currentTarget.src = "/placeholder.svg";
-                event.currentTarget.onerror = null;
-              }}
-            />
+            {item.type === "video" ? (
+              <video
+                src={item.url}
+                poster={item.thumbnail || "/placeholder.svg"}
+                className="h-full w-full object-cover"
+                controls
+                muted
+                preload="metadata"
+              />
+            ) : (
+              <img
+                src={item.url}
+                alt={item.title}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+                onError={(event) => {
+                  event.currentTarget.src = "/placeholder.svg";
+                  event.currentTarget.onerror = null;
+                }}
+              />
+            )}
           </div>
           <div className="p-4">
             <p className="text-sm font-semibold">

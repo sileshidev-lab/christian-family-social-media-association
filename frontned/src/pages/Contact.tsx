@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { formatISO } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { contactService } from "@/services/dataService";
+import { messageApi } from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -10,20 +9,27 @@ import { Button } from "@/components/ui/button";
 const ContactPage = () => {
   const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError(null);
+    setSubmitting(true);
     const formData = new FormData(event.currentTarget);
-    contactService.create({
-      id: Math.random().toString(36).slice(2, 10),
-      name: String(formData.get("name")),
-      email: String(formData.get("email")),
-      message: String(formData.get("message")),
-      createdAt: formatISO(new Date()),
-      isRead: false
-    });
-    event.currentTarget.reset();
-    setSubmitted(true);
+    try {
+      await messageApi.create({
+        name: String(formData.get("name")),
+        email: String(formData.get("email")),
+        message: String(formData.get("message"))
+      });
+      event.currentTarget.reset();
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send message.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -42,6 +48,7 @@ const ContactPage = () => {
               </p>
             ) : (
               <form className="space-y-4" onSubmit={handleSubmit}>
+                {error && <p className="text-sm text-destructive">{error}</p>}
                 <div className="space-y-2">
                   <Label htmlFor="name">{t("contact.name")}</Label>
                   <Input id="name" name="name" autoComplete="name" required />
@@ -54,7 +61,9 @@ const ContactPage = () => {
                   <Label htmlFor="message">{t("contact.message")}</Label>
                   <Textarea id="message" name="message" required />
                 </div>
-                <Button type="submit">{t("contact.send")}</Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Sending..." : t("contact.send")}
+                </Button>
               </form>
             )}
           </div>

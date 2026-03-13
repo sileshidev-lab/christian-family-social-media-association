@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { newsService, type NewsItem } from "@/services/dataService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { newsApi, uploadApi } from "@/services/api";
+import type { NewsItem } from "@/services/dataService";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -15,10 +17,10 @@ import {
 } from "@/components/ui/dialog";
 
 const AdminNewsPage = () => {
-  const [refresh, setRefresh] = useState(0);
   const [newsQuery, setNewsQuery] = useState("");
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [newsForm, setNewsForm] = useState({
     title: "",
     category: "",
@@ -26,8 +28,15 @@ const AdminNewsPage = () => {
     content: "",
     status: "published" as NewsItem["status"]
   });
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageFileUrl, setImageFileUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  const newsItems = useMemo(() => newsService.getAll(), [refresh]);
+  const queryClient = useQueryClient();
+  const { data: newsItems = [], isLoading, isError } = useQuery({
+    queryKey: ["admin", "news"],
+    queryFn: newsApi.getAdminAll
+  });
 
   const filteredNews = useMemo(() => {
     const query = newsQuery.trim().toLowerCase();
@@ -50,17 +59,49 @@ const AdminNewsPage = () => {
     return date.toLocaleDateString();
   };
 
+  const createMutation = useMutation({
+    mutationFn: (payload: Omit<NewsItem, "id">) => newsApi.create(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      setFormError(null);
+      setNewsForm({
+        title: "",
+        category: "",
+        excerpt: "",
+        content: "",
+        status: "published"
+      });
+      setImageUrl("");
+      setImageFileUrl(null);
+      setNewsDialogOpen(false);
+    },
+    onError: (err) => {
+      setFormError(err instanceof Error ? err.message : "Failed to save article.");
+    }
+  });
+  const isSaving = createMutation.isPending;
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<NewsItem> }) =>
+      newsApi.update(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "news"] })
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => newsApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "news"] })
+  });
+
   const toggleNewsStatus = (item: NewsItem) => {
-    newsService.update(item.id, {
-      status: item.status === "published" ? "draft" : "published"
+    updateMutation.mutate({
+      id: item.id,
+      payload: { status: item.status === "published" ? "draft" : "published" }
     });
-    setRefresh((prev) => prev + 1);
   };
 
   const deleteNews = (id: string) => {
     if (!window.confirm("Delete this news article?")) return;
-    newsService.delete(id);
-    setRefresh((prev) => prev + 1);
+    deleteMutation.mutate(id);
   };
 
   const submitNews = (event: React.FormEvent<HTMLFormElement>) => {
@@ -70,8 +111,10 @@ const AdminNewsPage = () => {
       return;
     }
 
-    newsService.create({
-      id: Math.random().toString(36).slice(2, 10),
+    const imageValue = imageFileUrl?.trim() || imageUrl.trim() || "/placeholder.svg";
+
+    setFormError(null);
+    createMutation.mutate({
       title: newsForm.title.trim(),
       titleAm: newsForm.title.trim(),
       excerpt: newsForm.excerpt.trim() || newsForm.content.slice(0, 120) + "...",
@@ -79,20 +122,29 @@ const AdminNewsPage = () => {
       content: newsForm.content.trim(),
       contentAm: newsForm.content.trim(),
       date: new Date().toISOString(),
-      image: "/placeholder.svg",
+      image: imageValue,
       category: newsForm.category.trim(),
       status: newsForm.status
     });
+  };
 
-    setNewsForm({
-      title: "",
-      category: "",
-      excerpt: "",
-      content: "",
-      status: "published"
-    });
-    setNewsDialogOpen(false);
-    setRefresh((prev) => prev + 1);
+  const handleImageFile = async (file?: File) => {
+    if (!file) return;
+    const maxSizeMb = 2;
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      window.alert(`Please use an image smaller than ${maxSizeMb}MB.`);
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const uploadedUrl = await uploadApi.uploadImage(file);
+      setImageFileUrl(uploadedUrl);
+      setImageUrl("");
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Failed to upload image.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   return (
@@ -119,7 +171,15 @@ const AdminNewsPage = () => {
         </p>
       </div>
 
-      {filteredNews.length === 0 ? (
+      {isError ? (
+        <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+          Failed to load news.
+        </div>
+      ) : isLoading ? (
+        <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+          Loading news...
+        </div>
+      ) : filteredNews.length === 0 ? (
         <div className="w-full rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
           No news articles yet.
         </div>
@@ -128,6 +188,7 @@ const AdminNewsPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Image</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
@@ -138,6 +199,21 @@ const AdminNewsPage = () => {
             <TableBody>
               {filteredNews.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <div className="h-12 w-12 overflow-hidden rounded-md border border-border bg-muted">
+                      <img
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(event) => {
+                          event.currentTarget.src = "/placeholder.svg";
+                          event.currentTarget.onerror = null;
+                        }}
+                      />
+                    </div>
+                  </TableCell>
                   <TableCell>{item.title}</TableCell>
                   <TableCell>{item.category}</TableCell>
                   <TableCell>
@@ -183,6 +259,19 @@ const AdminNewsPage = () => {
                 <span>Status: {selectedNews.status}</span>
                 <span>Date: {formatDate(selectedNews.date)}</span>
               </div>
+              <div className="h-48 w-full overflow-hidden rounded-lg border border-border bg-muted">
+                <img
+                  src={selectedNews.image || "/placeholder.svg"}
+                  alt={selectedNews.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  onError={(event) => {
+                    event.currentTarget.src = "/placeholder.svg";
+                    event.currentTarget.onerror = null;
+                  }}
+                />
+              </div>
               <p className="text-sm text-muted-foreground">{selectedNews.excerpt}</p>
               <div className="rounded-md border border-border bg-muted/40 p-4 leading-6 text-foreground">
                 {selectedNews.content}
@@ -199,6 +288,7 @@ const AdminNewsPage = () => {
             <DialogDescription>Create a new update for the public news page.</DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={submitNews}>
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
             <div className="space-y-2">
               <Label htmlFor="news-title">Title</Label>
               <Input
@@ -269,11 +359,61 @@ const AdminNewsPage = () => {
                 className="min-h-[140px]"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="news-image">Image (URL or upload)</Label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Input
+                  id="news-image"
+                  value={imageUrl}
+                  onChange={(event) => {
+                    setImageUrl(event.target.value);
+                    setImageFileUrl(null);
+                  }}
+                  placeholder="https://example.com/image.jpg"
+                />
+                <Input
+                  id="news-image-file"
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => handleImageFile(event.target.files?.[0])}
+                  disabled={uploadingImage}
+                />
+              </div>
+              {uploadingImage && (
+                <p className="text-xs text-muted-foreground">Uploading image...</p>
+              )}
+              {(imageFileUrl || imageUrl.trim()) && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img
+                    src={imageFileUrl || imageUrl}
+                    alt="Preview"
+                    className="h-16 w-16 rounded-lg object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = "/placeholder.svg";
+                      event.currentTarget.onerror = null;
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setImageUrl("");
+                      setImageFileUrl(null);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setNewsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save article</Button>
+              <Button type="submit" disabled={uploadingImage || isSaving}>
+                {uploadingImage ? "Uploading..." : isSaving ? "Saving..." : "Save article"}
+              </Button>
             </div>
           </form>
         </DialogContent>

@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { newsService } from "@/services/dataService";
+import { useQuery } from "@tanstack/react-query";
+import { newsApi } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -9,9 +10,21 @@ const NewsDetailPage = () => {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
   const isAm = i18n.language === "am";
-  const item = id ? newsService.getById(id) : null;
+  const { data: item, isLoading, isError } = useQuery({
+    queryKey: ["news", id],
+    queryFn: () => newsApi.getById(id ?? ""),
+    enabled: Boolean(id)
+  });
 
-  if (!item) {
+  if (isLoading) {
+    return (
+      <section className="container section-padding">
+        <p className="text-muted-foreground">{t("common.loading")}</p>
+      </section>
+    );
+  }
+
+  if (isError || !item) {
     return (
       <section className="container section-padding">
         <p className="text-muted-foreground">{t("common.error")}</p>
